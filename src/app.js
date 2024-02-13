@@ -1,63 +1,53 @@
+// Importaciones
 const express = require("express");
-const app = express();
 const exphbs = require("express-handlebars");
 const socket = require("socket.io");
-const PUERTO = 8080;
-
+const MessageModel = require("./dao/models/message.model.js");
 const productsRouter = require("./routes/products.router.js");
 const cartsRouter = require("./routes/carts.router.js");
 const viewsRouter = require("./routes/views.router.js");
+const { connect } = require("./database.js");
 
-// Middleware //
+// Configuración del servidor
+const app = express();
+const PORT = 8080;
+
+// Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("./src/public"));
 
-// Handlebars //
+// Handlebars
 app.engine("handlebars", exphbs.engine());
 app.set("view engine", "handlebars");
 app.set("views", "./src/views");
 
-// Routes //
+// Rutas
 app.use("/api/products", productsRouter);
-app.use("/api/carts", cartsRouter);
+app.use("/api/carts/", cartsRouter);
 app.use("/", viewsRouter);
 
-// Server //
-const server = app.listen(PUERTO, () => {
-  console.log(`Servidor en el Puerto ${PUERTO}`);
+// Creación del servidor
+const httpServer = app.listen(PORT, () => {
+    console.log(`Escuchando en el Puerto ${PORT}`);
+    connect(); // Conexión a la base de datos
 });
 
-// Product Manager //
-const ProductManager = require("./controllers/product-manager.js");
-const productManager = new ProductManager("./src/models/productos.json");
+// Socket.io
+const io = new socket.Server(httpServer);
 
-// Socket.IO // 
-const io = socket(server);
+// Manejo de conexión de socket
+io.on("connection", (socket) => {
+    console.log("Nuevo usuario conectado");
 
-io.on("connection", async (socket) => {
-  console.log("Cliente en linea");
-
- // Envía el array de productos al cliente que se conectó //
-  socket.emit("productos", await productManager.getProducts());
-
- // Maneja el evento "eliminarProducto" desde el cliente //
-  socket.on("eliminarProducto", async (id) => {
-    try {
-      await productManager.deleteProduct(id);
-      io.sockets.emit("productos", await productManager.getProducts());
-    } catch (error) {
-      console.error("Error deleting product:", error.message);
-    }
-  });
-
-// Maneja el evento "agregarProducto" desde el cliente //
-  socket.on("agregarProducto", async (producto) => {
-    try {
-      await productManager.addProduct(producto);
-      io.sockets.emit("productos", await productManager.getProducts());
-    } catch (error) {
-      console.error("Error adding product:", error.message);
-    }
-  });
+    // Manejo de mensajes
+    socket.on("message", async (data) => {
+        try {
+            await MessageModel.create(data);
+            const messages = await MessageModel.find();
+            io.sockets.emit("message", messages);
+        } catch (error) {
+            console.error("Error al procesar el mensaje:", error);
+        }
+    });
 });

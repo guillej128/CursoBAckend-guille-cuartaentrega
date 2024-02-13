@@ -1,107 +1,138 @@
 const express = require("express");
 const router = express.Router();
 
-const ProductManager = require("../controllers/product-manager.js");
-const productManager = new ProductManager("./src/models/productos.json");
+const ProductManager = require("../dao/db/product-manager-db.js");
+const productManager = new ProductManager();
 
-// Rutas//
-router.get("/", async (req, res) => {
-    try {
-        const arrayProductos = await productManager.leerArchivo();
+//Rutas:
+//Ver todos los productos
+router.get("/", async(req, res)=>{
+    try{
         const limit = parseInt(req.query.limit);
-
-        if (limit) {
-            const arrayConLimite = arrayProductos.slice(0, limit);
-            return res.json(arrayConLimite);
-        } else {
-            return res.json(arrayProductos);
+        const productos = await productManager.getProducts();
+        if(limit){
+            res.json(productos.slice(0, limit));
+        }else{
+            res.json(productos)
         }
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Error al procesar la solicitud." });
-    }
-});
 
+    }catch(error){
+        console.error("Erros al obtener los productos",error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
+    }
+})
+
+//Método para ver Productos por ID
 router.get("/:pid", async (req, res) => {
-    try {
-        const pid = parseInt(req.params.pid);
-        const buscado = await productManager.getProductById(pid);
+    const id = req.params.pid;
 
-        if (buscado) {
-            return res.json(buscado);
-        } else {
-            return res.status(404).json({ error: "ID de producto no encontrado o incorrecto." });
+    try {
+        const producto = await productManager.getProductById(id);
+        if (!producto) {
+            return res.json({
+                error: "No se pudo encontrar el Producto"
+            });
         }
+
+        res.json(producto);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Error en la búsqueda del ID." });
+        console.error("Error al obtener producto", error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
     }
 });
 
+//Método para Agregar Producto
 router.post("/", async (req, res) => {
     try {
-        const nuevoProducto = req.body;
+        const {
+            title,
+            description,
+            price,
+            img,
+            code,
+            stock,
+            status = true,
+            category
+        } = req.body;
 
-        const validationError = validarProducto(nuevoProducto);
-        if (validationError) {
-            return res.status(400).json({ error: true, message: validationError });
+        if (!title || !description || !price || !img || !code || !stock || !status || !category) {
+            const errorRes = {
+                error: true,
+                message: "Todos los campos son obligatorios. Intente nuevamente"
+            };
+            return res.status(400).json(errorRes);
         }
-
+        const nuevoProducto = {title,description,price,img,code,stock,status,category};
         await productManager.addProduct(nuevoProducto);
 
-        return res.status(201).json({ success: true, message: "Producto agregado exitosamente." });
+        const successRes = {
+            success: true, message: "Producto agregado exitosamente."
+        };
+        res.status(201).json(successRes);
+
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: true, message: "Error al intentar agregar producto." });
+        const errorRes = {
+            error: true,
+            message: "Error al intentar agregar producto."
+        };
+        res.status(500).json(errorRes);
     }
 });
 
+//Método para Actualizar Producto
 router.put("/:pid", async (req, res) => {
     try {
         const pid = req.params.pid;
         const productoActualizado = req.body;
 
         if (!pid || !productoActualizado) {
-            return res.status(400).json({ error: true, message: "Parámetros incompletos. Se requiere un ID y datos para actualizar." });
+            const errorRes = {
+                error: true,
+                message: "Parámetros incompletos. Se requiere un ID y datos para actualizar."
+            };
+            return res.status(400).json(errorRes);
         }
 
         await productManager.updateProduct(pid, productoActualizado);
 
-        return res.status(200).json({ success: true, message: "Producto actualizado exitosamente." });
+        const successRes = {
+            success: true,
+            message: "Producto actualizado exitosamente."
+        };
+        res.status(200).json(successRes);
+
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: true, message: "Error al intentar actualizar el producto." });
+        const errorRes = {
+            error: true,
+            message: "Error al intentar actualizar el producto."
+        };
+        res.status(500).json(errorRes);
     }
 });
 
+//Método para borrar Producto
 router.delete("/:pid", async (req, res) => {
+    const id = req.params.pid;
+
     try {
-        const pid = parseInt(req.params.pid);
-
-        if (!pid) {
-            return res.status(400).json({ error: true, message: "ID de producto no válido." });
-        }
-
-        await productManager.deleteProduct(pid);
-
-        return res.status(200).json({ success: true, message: "Producto eliminado exitosamente." });
+        await productManager.deleteProduct(id);
+        res.json({
+            message: "Producto eliminado exitosamente"
+        });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: true, message: "Error al intentar eliminar el producto." });
+        console.error("Error al eliminar producto", error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
     }
 });
 
-// Función de validación de productos//
-function validarProducto(producto) {
-    const { title, description, price, img, code, stock, status, category } = producto;
 
-    if (!title || !description || !price || !img || !code || !stock || !status || !category) {
-        return "Todos los campos son obligatorios. Intente nuevamente";
-    }
-
-    
-
-    return null; 
-}
 
 module.exports = router;

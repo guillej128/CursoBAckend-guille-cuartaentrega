@@ -1,73 +1,48 @@
-const socket = io();
+//Creamos una instancia de socket.io del lado del cliente ahora: 
+const socket = io(); 
 
-// Escuchar eventos del servidor //
-socket.on("productos", renderProductos);
+//Creamos una variable para guardar el usuario: 
+let user; 
+const chatBox = document.getElementById("chatBox");
 
-// Función para renderizar la tabla de productos //
-function renderProductos(productos) {
-    const contenedorProductos = document.getElementById("contenedorProductos");
-    contenedorProductos.innerHTML = "";
+//Sweet Alert 2: es una librería que nos permite crear alertas personalizadas. 
 
-    const flexContainer = document.createElement("div");
-    flexContainer.classList.add("flex-container");
+//Swal es un objeto global que nos permite usar los métodos de la libreria.  
+//Fire es un método que nos permite configurar el alerta.
 
-    productos.forEach(item => {
-        const card = document.createElement("div");
-        card.classList.add("card");
+Swal.fire({
+    title: "Identificate", 
+    input: "text",
+    text: "Ingresa un usuario para identificarte en el chat", 
+    inputValidator: (value) => {
+        return !value && "Necesitas escribir un nombre para continuar"
+    }, 
+    allowOutsideClick: false,
+}).then( result => {
+    user = result.value;
+})
 
-        const contenidoTarjeta = document.createElement("div");
-        contenidoTarjeta.classList.add("contenido-tarjeta");
 
-        contenidoTarjeta.innerHTML = `
-            <p>Id ${item.id} </p>
-            <p>Titulo ${item.title} </p>
-            <p>Precio ${item.price} </p>
-            <button> Eliminar Producto </button>
-        `;
-
-        card.appendChild(contenidoTarjeta);
-        flexContainer.appendChild(card);
-
-        // Agregamos el evento eliminar producto //
-        card.querySelector("button").addEventListener("click", () => {
-            confirmarEliminarProducto(item.id);
-        });
-    });
-
-    // Agregamos el contenedor flexible al contenedor principal //
-    contenedorProductos.appendChild(flexContainer);
-}
-
-// Confirmar antes de eliminar un producto //
-function confirmarEliminarProducto(id) {
-    const confirmacion = confirm("¿Estás seguro de eliminar este producto?");
-    if (confirmacion) {
-        eliminarProducto(id);
+chatBox.addEventListener("keyup", (event) => {
+    if(event.key === "Enter") {
+        if(chatBox.value.trim().length > 0) {
+            //trim nos permite sacar los espacios en blanco del principio y del final de un string. 
+            //Si el mensaje tiene más de 0 caracteres, lo enviamos al servidor. 
+            socket.emit("message", {user: user, message: chatBox.value}); 
+            chatBox.value = "";
+        }
     }
-}
+})
 
-// Eliminar producto //
-function eliminarProducto(id) {
-    socket.emit("eliminarProducto", id);
-}
+//Listener de Mensajes: 
 
-// Evento click para agregar producto // 
-document.getElementById("btnEnviar").addEventListener("click", agregarProducto);
+socket.on("message", data => {
+    let log = document.getElementById("messagesLogs");
+    let messages = "";
 
-// Función para agregar un nuevo producto //
-function agregarProducto() {
-    const producto = {
-        title: document.getElementById("title").value,
-        description: document.getElementById("description").value,
-        price: document.getElementById("price").value,
-        img: document.getElementById("img").value,
-        code: document.getElementById("code").value,
-        stock: document.getElementById("stock").value,
-        category: document.getElementById("category").value,
-        status: document.getElementById("status").value === "true"
-    };
+    data.forEach( message => {
+        messages = messages + `${message.user} dice: ${message.message} <br>`
+    })
 
-    // Validaciones adicionales si es necesario //
-
-    socket.emit("agregarProducto", producto);
-}
+    log.innerHTML = messages;
+})

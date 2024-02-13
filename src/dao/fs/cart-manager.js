@@ -1,30 +1,30 @@
 const fs = require("fs").promises;
 
 class CartManager {
-    static carts = [];
-
     constructor(path) {
+        this.carts = [];
         this.path = path;
         this.ultId = 0;
+
         this.cargarCarritos();
     }
 
     async cargarCarritos() {
         try {
             const data = await fs.readFile(this.path, "utf8");
-            CartManager.carts = JSON.parse(data);
-            if (CartManager.carts.length > 0) {
-                this.ultId = Math.max(...CartManager.carts.map(cart => cart.id));
+            this.carts = JSON.parse(data);
+            if(this.carts.length > 0) {
+                this.ultId = Math.max(...this.carts.map(cart => cart.id));
             }
         } catch (error) {
-            console.error("Error al cargar los carritos", error);
+            console.error("Erros al cargar los carritos", error);
             await this.guardarCarritos();
-            throw error; 
+            
         }
     }
 
-    async guardarCarritos() {
-        await fs.writeFile(this.path, JSON.stringify(CartManager.carts, null, 2));
+    async guardarCarritos () {
+        await fs.writeFile(this.path, JSON.stringify(this.carts, null, 2));
     }
 
     async crearCarrito() {
@@ -33,7 +33,7 @@ class CartManager {
             products: []
         };
 
-        CartManager.carts.push(nuevoCarrito);
+        this.carts.push(nuevoCarrito);
 
         await this.guardarCarritos();
         return nuevoCarrito;
@@ -41,26 +41,26 @@ class CartManager {
 
     async getCarritoById(cartId) {
         try {
-            const carrito = CartManager.carts.find(car => car.id === cartId);
+            const carrito = this.carts.find(car => car.id === cartId);
 
-            if (!carrito) {
+            if (!carrito){
                 throw new Error(`No existe un carrito con el ID ${cartId} indicado`);
             }
             return carrito;
         } catch (error) {
-            console.error(`Error al obtener carrito a través del ID`, error);
-            throw error;
+            console.error(`Error al obtener carruti a travéz del ID`, error);
+            throw error;            
         }
     }
 
     async agregarProductoAlCarrito(cartId, productId, quantity = 1) {
         const carrito = await this.getCarritoById(cartId);
-        const productoIndex = carrito.products.findIndex(p => p.product === productId);
+        const existeProducto = carrito.products.find(p => p.product === productId);
 
-        if (productoIndex >= 0) {
-            carrito.products[productoIndex].quantity += quantity;
+        if (existeProducto){
+            existeProducto.quantity += quantity;
         } else {
-            carrito.products.push({ product: productId, quantity });
+            carrito.products.push({product: productId, quantity});
         }
 
         await this.guardarCarritos();
@@ -68,4 +68,4 @@ class CartManager {
     }
 }
 
-module.exports = CartManager;
+module.exports = CartManager
