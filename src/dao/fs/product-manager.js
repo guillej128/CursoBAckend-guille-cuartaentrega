@@ -48,7 +48,38 @@ class ProductManager{
           throw error; 
         }
       }
-   
+    /*async addProduct(nuevoObjeto) {
+        let { title, description, price, img, code, stock, status, category } = nuevoObjeto;
+
+        if (!title || !description || !price || !img || !code || !stock || !status || !category) {
+            console.log("Todos los campos son obligatorios. Por favor, completa la información del producto.");
+            return;
+        }
+
+        if (this.products.some(item => item.code === code)) {
+            console.log("El código ingresado ya existe en la BD.");
+            return;
+        }
+
+        const newProduct = {
+            id: ++ProductManager.lastId,
+            title,
+            description,
+            price,
+            img,
+            code,
+            stock,
+            status: true,
+            category,
+            thumbnails: thumbnails || []
+        };
+
+        this.products.push(newProduct);
+
+        // Guardar la lista actualizada en el archivo
+        await this.guardarArchivo(this.products);
+    }*/
+
     //Obtener los productos
     getProducts(){
         try {
@@ -98,6 +129,15 @@ class ProductManager{
           throw error;
         }
       }
+    /*async guardarArchivo(arrayProductos) {
+        try {
+            const existingProducts = await this.leerArchivo();
+            existingProducts.push(...arrayProductos);
+            await fs.writeFile(this.path, JSON.stringify(existingProducts, null, 2));
+        } catch (error) {
+            console.log("Error al guardar el Archivo", error);
+        }
+    }*/
     
 
     // Método Actualizar
