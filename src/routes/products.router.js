@@ -28,6 +28,7 @@ router.get("/", async (req, res) => {
             hasNextPage: productos.hasNextPage,
             prevLink: productos.hasPrevPage ? `/api/products?limit=${limit}&page=${productos.prevPage}&sort=${sort}&query=${query}` : null,
             nextLink: productos.hasNextPage ? `/api/products?limit=${limit}&page=${productos.nextPage}&sort=${sort}&query=${query}` : null,
+            user: req.session.user,
         });
 
     } catch (error) {

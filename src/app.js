@@ -4,9 +4,13 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const exphbs = require ("express-handlebars");
 const socket = require("socket.io");
+//Passport: 
+const passport = require("passport");
+const initializePassport = require("./config/passport.config.js");
 
 
 //Creación de Servidor:
+
 const app = express();
 const PUERTO = 8080;
 require("./database.js");
@@ -27,12 +31,19 @@ app.use(session({
     resave: true,
     saveUninitialized: true,
     store: MongoStore.create({
-        mongoUrl: "mongodb+srv://luisjaimevaz:Oliver2017@cluster0.qhzsnxj.mongodb.net/e-commerce?retryWrites=true&w=majority&appName=Cluster0",
+        mongoUrl: "mongodb+srv://pruebaaa5back:lSI4my0JrQzCeyeu@cluster9.onzmhdj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster9",
         ttl: 11200
     })
     
 
 }))
+//PASSPORT
+initializePassport();
+app.use(passport.initialize());
+app.use(passport.session())
+
+
+
 
 //Handlebars
 app.engine("handlebars", exphbs.engine());
@@ -54,7 +65,7 @@ const httpServer = app.listen(PUERTO, ()=> {
     console.log(`Escuchando en el Puerto ${PUERTO}`);
 })
 
-//Chat del E-Commerce
+//Chat de la Casa de repuestos
 const MessageModel = require("./dao/models/message.model.js");
 const io = new socket.Server(httpServer);
 

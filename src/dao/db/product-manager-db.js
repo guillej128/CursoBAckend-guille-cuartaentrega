@@ -89,14 +89,7 @@ class ProductManager {
 }
 
 
-  /*async getProducts() {
-    try {
-      const productos = await ProductModel.find();
-      return productos;
-    } catch (error) {
-      console.log("Error al obtener los productos", error);
-    }
-  }*/
+ 
 
   async getProductById(id) {
     try {

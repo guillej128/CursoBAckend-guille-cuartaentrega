@@ -1,12 +1,14 @@
-<div class="botones">
-    <button class="boton"><a href="/api/sessions/logout">Login</a></button>
-    <button class="boton"><a href="/register">Registrarse</a></button>
-</div>
 
 {{#if user}}
-<div>
-    <p>Bienvenido, {{user.first_name}} {{user.last_name}}! </p>
+
+<div class="container">
+        <p>Bienvenido, {{user.first_name}} {{user.last_name}}!</p>
+        <p>Rol: {{user.role}}</p>
+        <p>Email: {{user.email}}</p>
+        <p>Edad: {{user.age}}</p>
 </div>
+
+
 {{/if}}
 
 <h1>Mis productos</h1>
@@ -19,3 +21,5 @@
     </div>
     {{/each}}
 </div>
+
+<script src='js/navbar.js'></script>

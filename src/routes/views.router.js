@@ -6,23 +6,24 @@ const productManager = new ProductManager();
 const cartManager = new CartManager();
 
 router.get("/", async (req, res) => {
-    try {
-        const productos = await productManager.getProducts();
-        
-        const nuevoArray = productos.docs.map(producto => {
+   try {
+      const productos = await productManager.getProducts();
+   
+      const nuevoArray = productos.docs.map(producto => {
             const { _id, ...rest } = producto.toObject();
             return rest;
-        });
+      });
 
-        res.render("index", {
-            productos: nuevoArray
-        });
-    } catch (error) {
-        console.error("Error al obtener productos", error);
-        res.status(500).json({
-            error: "Error interno del servidor"
-        });
-    }
+      res.render("index", {
+            productos: nuevoArray,
+            user: req.session.user
+      });
+   } catch (error) {
+      console.error("Error al obtener productos", error);
+         res.status(500).json({
+         error: "Error interno del servidor"
+      });
+   }
 })
 
 router.get("/products", async (req, res) => {
@@ -85,42 +86,20 @@ router.get("/carts/:cid", async (req, res) => {
 
 
 
-/*router.get("/", async (req, res) => {
-    res.render("chat");
-})*/
-
-
 //      USUARIOS
-
 
 // Ruta para el formulario de login
 router.get("/login", (req, res) => {
-   // Verifica si el usuario ya está logueado y redirige a la página de perfil si es así
-   if (req.session.login) {
-       return res.redirect("/profile");
-   }
-
    res.render("login");
 });
 
 // Ruta para el formulario de registro
 router.get("/register", (req, res) => {
-   // Verifica si el usuario ya está logueado y redirige a la página de perfil si es así
-   if (req.session.login) {
-       return res.redirect("/profile");
-   }
    res.render("register");
 });
 
 // Ruta para la vista de perfil
 router.get("/profile", (req, res) => {
-   // Verifica si el usuario está logueado
-   if (!req.session.login) {
-       // Redirige al formulario de login si no está logueado
-       return res.redirect("/profile");
-   }
-
-   // Renderiza la vista de perfil con los datos del usuario
    res.render("profile", { user: req.session.user });
 });
 module.exports = router; 
