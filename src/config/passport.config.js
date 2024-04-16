@@ -1,71 +1,28 @@
 const passport = require("passport");
-const local = require("passport-local");
-const UserModel = require("../dao/models/user.model.js");
-const { createHash, isValidPassword } = require("../utils/hashBcrypt.js");
-
-//Passport con GitHub:
+const jwt = require("passport-jwt");
 const GitHubStrategy = require("passport-github2");
-
-const LocalStrategy = local.Strategy;
+const JWTStrategy = jwt.Strategy;
+const ExtractJwt = jwt.ExtractJwt;
+const UserModel = require("../dao/models/user.model.js");
 
 const initializePassport = () => {
-
-    passport.use("register", new LocalStrategy({
-        passReqToCallback: true,
-        usernameField: "email"
-    }, async (req, username, password, done) => {
-        const { first_name, last_name, email, age } = req.body;
+    passport.use("jwt", new JWTStrategy({
+        jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]), // Utiliza ExtractJwt.fromExtractors para extraer el token de la cookie
+        secretOrKey: "coderhouse"
+    }, async (jwt_payload, done) => {
         try {
-            //Verificación de existencia o no de registro de email
-            let user = await UserModel.findOne({ email });
-            if (user) return done(null, false);
-            //Si no existe, voy a crear un registro de usuario nuevo
-            let newUser = {
-                first_name,
-                last_name,
-                email,
-                age,
-                password: createHash(password)
-            }
-
-            let result = await UserModel.create(newUser);
-            //Si todo resulta bien, podemos mandar done con el usuario generado. 
-            return done(null, result);
-        } catch (error) {
-            return done(error);
-        }
-    }))
-
-    //Estrategia para el "login":
-    passport.use("login", new LocalStrategy({
-        usernameField: "email"
-    }, async (email, password, done) => {
-        try {
-            //Verificar si existe un usuario con el email.
-            const user = await UserModel.findOne({ email });
+            // Busca el usuario en la base de datos usando el ID del payload JWT
+            const user = await UserModel.findById(jwt_payload.user._id);
             if (!user) {
-                console.log("Este usuario no existe, intente nuevamente.");
                 return done(null, false);
             }
-            //Si existe el uruario, se verifica la contraseña: 
-            if (!isValidPassword(password, user)) return done(null, false);
-            return done(null, user);
-
+            return done(null, user); // Devuelve el usuario encontrado
         } catch (error) {
             return done(error);
         }
-    }))
+    }));
 
-    passport.serializeUser((user, done) => {
-        done(null, user._id);
-    });
-
-    passport.deserializeUser(async (id, done) => {
-        let user = await UserModel.findById({ _id: id });
-        done(null, user);
-    })
-
-    //Acá desarrollamos nuestra nueva estrategia con GitHub: 
+    // Estrategia para GitHub
     passport.use("github", new GitHubStrategy({
         clientID: "Iv1.ac897018476700ab",
         clientSecret: "9e79f10996f38757cd26f76539b4c86c1b0ddada",
@@ -103,8 +60,20 @@ const initializePassport = () => {
             return done(error);
         }
 
-    }))
+    }));
 }
 
+const cookieExtractor = (req) => {
+    let token = null;
+    if(req && req.cookies) {
+        token = req.cookies["coderCookieToken"]
+    }
+    return token;
+}
 
 module.exports = initializePassport;
+
+
+
+
+

@@ -1,9 +1,22 @@
 
-<h1>Mi Usuario</h1>
+
+<h1>Mi Perfil</h1>
 <div class="formLogin">
-<p>Bienvenido!, {{user.first_name}} {{user.last_name}}!</p>
-<p>Email: {{user.email}}</p>
-<p>Edad: {{user.age}}</p>
+<p>Bienvenid@!, {{user.nombre}} {{user.apellido}}!</p>
 <p>Rol: {{user.role}}</p>
-<a href="/api/sessions/logout">Logout</a>
+
+<form action="/api/users/logout" method="POST">
+  <button type="submit">Logout</button>
+</form>
+
+
+{{#if this.isAdmin}}
+<div class="box-redirect">
+  <a class="nav-item nav-redirect" href="/realtimeproducts"> Modificar Productos </a>
+  <a class="nav-item nav-redirect" href="/api/users/admin"> Apartado del Admin </a>
+</div>
+{{else}}
+  <a class="nav-item nav-redirect"  href="/chat"> Chat en vivo</a>
+  <a class="nav-item nav-redirect"  href="/products"> Tienda </a>
+{{/if}}
 </div>
