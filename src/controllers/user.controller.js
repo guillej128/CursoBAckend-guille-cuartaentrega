@@ -4,6 +4,13 @@ const jwt = require("jsonwebtoken");
 const { createHash, isValidPassword } = require("../utils/hashBcrypt.js");
 const UserDTO = require("../dto/user.dto.js");
 
+//Diccionario de Errores Personalizado
+const CustomError = require("../services/errors/custom-error.js");
+const customError = new CustomError();
+const Info = require("../services/errors/info.js");
+const info = new Info();
+const { EErrors } = require("../services/errors/enums.js");
+
 class UserController {
     async register(req, res) {
         const { first_name, last_name, email, password, age } = req.body;
@@ -56,8 +63,14 @@ class UserController {
             const usuarioEncontrado = await UserModel.findOne({ email });
 
             if (!usuarioEncontrado) {
-                return res.status(401).send("Usuario no válido");
+                customError.createError({
+                    name: "Email no encontrado",
+                    cause: info.emailNotFound({email}),
+                    message: "Error al buscar el Email",
+                    code: EErrors.AUTHENTICACION
+                } )
             }
+            console.log(usuarioEncontrado, "hola!");
 
             const esValido = isValidPassword(password, usuarioEncontrado);
             if (!esValido) {
@@ -84,6 +97,7 @@ class UserController {
             res.status(500).send("Error interno del servidor");
         }
     }
+   
 
     async profile(req, res) {
         //Con DTO: 

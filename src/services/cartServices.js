@@ -1,5 +1,5 @@
 const CartModel = require("../dao/models/cart.model.js");
-const ProductServices = require("./productServices.js");
+const ProductServices = require("../services/productServices.js");
 const productServices = new ProductServices();
 
 class CartServices{
@@ -17,7 +17,7 @@ class CartServices{
         try {
             const carrito = await CartModel.findById(cartId);
             if(!carrito){
-                console.log("No existe el carrito buscado con el Id: "+ cartId);
+                console.log("Hola usuario. No existe el carrito buscado con el Id: "+ cartId);
                 return null;
             }
             return carrito
@@ -28,26 +28,35 @@ class CartServices{
     }
 
     async agregarProductoAlCarrito(cartId, productId, quantity = 1){
+        console.log("cartService agregar productrro al carrito ");
         try {
-            const carrito = await this.getCarritoById(cartId); 
-            const existeProducto = carrito.products.find(item => item.product.toString() === productId);
-
+            let carrito = await this.getCarritoById(cartId); 
+    
+            // Si no se encuentra el carrito, se crea uno nuevo
+            if (!carrito) {
+                console.log("No encontré el carrito");
+                //carrito = await this.crearCarrito();
+            }
+    
+            const existeProducto = carrito.products.find(item => item.product._id.toString() === productId);
+    
             if(existeProducto) {
                 existeProducto.quantity += quantity;
             } else {
                 carrito.products.push({product: productId, quantity});
             }
-
+    
             //Propiedad "products" modificada
             carrito.markModified("products");
-
+    
             await carrito.save();
             return carrito;
-
+    
         } catch (error) {
             console.log("Error al agregar un producto al carrito", error);
         }
     }
+   
 
     async eliminarProductoDelCarrito(cartId, productId) {
         try {
@@ -133,7 +142,6 @@ class CartServices{
         }
     }
 
-        
     }
 
 

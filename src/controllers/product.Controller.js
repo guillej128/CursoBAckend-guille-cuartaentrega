@@ -1,4 +1,5 @@
 const ProductServices = require("../services/productServices.js");
+const generateProducts = require("../utils/utils.js");
 const productServices = new ProductServices();
 
 class ProductController {

@@ -138,8 +138,6 @@ class ViewsController {
   }
 
   // Vista a Index
-  /*async renderIndex(req, res) {
-    res.render("index");
-};*/
+  
 }
 module.exports = ViewsController;
