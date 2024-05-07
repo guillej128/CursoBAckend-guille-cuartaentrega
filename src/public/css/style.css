@@ -1,48 +1,75 @@
-body {
-    font-family: 'Arial', sans-serif;
+
+  body {
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
-}
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 1s ease;
+    background-color: #f0f6f6; /* Color de fondo pastel */
+    animation: changeColor 20s infinite; 
+  }
 
-.container {
-    width: 80%;
-    margin: 0 auto;
-}
+  @keyframes changeColor {
+    0% {
+      background-color: #f0f6f6; /* Gris pastel */
+    }
+    25% {
+      background-color: #d4d4dc; /* Gris claro pastel */
+    }
+    50% {
+      background-color: #b2bec3; /* Gris azulado pastel */
+    }
+    75% {
+      background-color: #636e72; /* Gris oscuro pastel */
+    }
+    100% {
+      background-color: #f0f6f6; /* Vuelve al gris pastel */
+    }
+  }
 
-.header {
-    background-color: #333;
-    color: #fff;
-    padding: 10px;
+  h1 {
     text-align: center;
-}
+    color: #2c3e50; /* Color de texto */
+  }
 
-.main-content {
+  .contenedorProductos{
     padding: 20px;
-}
+    margin: 20px;
+  }
 
-.section {
-    margin-bottom: 20px;
-}
+  .contenedorCards {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-around;
+  }
 
-.section h2 {
-    color: #333;
-}
+  .card {
+    border: 1px solid #4b4b4b; /* Borde gris oscuro pastel */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 10px;
+    padding: 15px;
+    min-width: 200px;
+    max-width: 300px;
+    background-color: #ffffff; /* Fondo blanco */
+    transition: box-shadow 0.3s ease;
+  }
 
-.footer {
-    background-color: #333;
-    color: #fff;
-    padding: 10px;
-    text-align: center;
-}
+  .boton{
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin: 1rem;
+    padding-left: 1rem;
+    padding: 10px 15px;
+    background-color: #2c3e50; /* Botón gris oscuro pastel */
+    color: #ffffff; /* Texto blanco */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
 
-/* Estilos para enlaces */
-a {
-    color: #007BFF;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}

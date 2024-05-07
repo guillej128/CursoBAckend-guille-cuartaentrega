@@ -5,6 +5,9 @@ const cookieParser = require("cookie-parser");
 const mockingRoutes = require("./routes/mocking.router.js");
 const handleError =require("./middleware/handleError.js");
 
+const addLogger = require("./middleware/addLogger.js");
+const errorsRoutes = require("./routes/errors.router.js");
+
 //Passport: 
 const passport = require("passport");
 const initializePassport = require("./config/passport.config.js");
@@ -24,6 +27,7 @@ const configObject = require("./config/config.js")
 const { mongo_url } = configObject
 
 //Middleware
+app.use(addLogger);
 app.use(handleError);
 app.use(express.urlencoded({extended : true}));
 app.use(express.json());
@@ -53,6 +57,7 @@ app.use("/api/carts", cartsRouter);
 app.use("/", viewsRouter);
 app.use("/api/users", userRouter);
 app.use("/", mockingRoutes);
+app.use("/", errorsRoutes);
 
 
 const httpServer = app.listen(PUERTO, ()=> {

@@ -137,7 +137,6 @@ class ViewsController {
     res.render("chat");
   }
 
-  // Vista a Index
   
 }
 module.exports = ViewsController;
