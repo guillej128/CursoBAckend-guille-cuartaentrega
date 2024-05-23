@@ -12,7 +12,10 @@ router.get("/profile", passport.authenticate("jwt", { session: false }), userCon
 router.post("/logout", userController.logout.bind(userController));
 router.get("/admin", passport.authenticate("jwt", { session: false }), userController.admin.bind(userController));
 
+//Alternativa Creación de Rutas Tercer Práctica Integradora
+router.post("/requestPasswordReset", userController.requestPasswordReset.bind(userController)); // Nueva ruta
+router.post("/reset-password", userController.resetPassword.bind(userController));
+router.put("/premium/:uid", passport.authenticate("jwt", { session: false }), userController.changeRolPremium.bind(userController));
+
+
 module.exports = router;
-
-
-
