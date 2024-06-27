@@ -7,38 +7,46 @@
             <h5 class="card-title">Producto: {{this.product.title}}</h5>
             <p class="card-text">Cantidad: {{this.quantity}}</p>
             <p class="card-text">Precio: ${{this.product.totalPrice}}</p>
-            <button onclick="eliminarProducto('{{this.cartId}}', '{{this.product._id}}')"
+            <p class="card-text">Dueño: ${{this.product.owner}}</p>
+
+
+
+
+
+            <button onclick="eliminarProducto('{{../cartId}}', '{{this.product._id}}')"
                 class="btn btn-danger">Eliminar</button>
+
+
+
         </div>
   </div>
 {{/each}}
 </div>
 
 <button onclick="vaciarCarrito('{{cartId}}')" class="btn btn-danger">Vaciar Carrito</button>
-<button onclick="completePurchase('{{cartId}}')">Terminar Compra</button>
+{{!--<button onclick="completePurchase('{{cartId}}')">Terminar Compra</button>--}}
+<form method="post" action="/api/carts/{{cartId}}/purchase">
+    <button type="submit" class="btn btn-success">Finalizar Compra</button>
+</form>
 <h3 class="mt-2">Total de la compra: ${{totalCompra}}</h3>
 
 
 
+{{!-- Organizar en un módulo en PUBLIC/JS --}}
+{{!-- <script src="../public/js/cart.js"> </script>--}}
+
 <script>
      function eliminarProducto(cartId, productId) {
+      console.log('Eliminar producto:', cartId, productId);
         fetch(`/api/carts/${cartId}/product/${productId}`, {
             method: 'DELETE'
         })
             .then(response => {
                 if (!response.ok) {
+                  console.log("SE ROMPIO TODOOOOO ELIMINAR DE A UNO");
                     throw new Error('Error al eliminar el producto del carrito');
                 }
-                // Mostramos la alerta de éxito cuando se elimina el producto
-                Swal.fire({
-                    position: "top-end",
-                    icon: "success",
-                    title: "Producto eliminado exitosamente",
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => {
-                    location.reload();
-                });
+               location.reload();
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -46,11 +54,13 @@
     }
 
     function vaciarCarrito(cartId) {
+      alert("Estoy en vaciar carrito");
         fetch(`/api/carts/${cartId}`, {
             method: 'DELETE'
         })
             .then(response => {
                 if (!response.ok) {
+                  console.log("SE ROMPIO TODOOOOO CARRITO");
                     throw new Error('Error al vaciar el carrito');
                 }
                 // Mostramos la alerta de éxito cuando se vacía el carrito
@@ -68,21 +78,35 @@
                 console.error('Error:', error);
             });
     }
-   
-    function completePurchase(cartId){
+    /*function vaciarCarrito(cartId) {
+        fetch(`/api/carts/${cartId}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al vaciar el carrito');
+                }
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }*/
+    function completePurchase(cartId) {
   fetch(`/api/carts/${cartId}/purchase`, { method: 'POST' })
     .then(response => {
-      if(!response.ok){
-        throw Error(`Error completing purchase`)
+      if (!response.ok) {
+        throw Error('Error completing purchase');
       }
-      return Swal.fire({
-        position: "top-end",
-        icon: "success",
-        title: "Compra completada exitosamente",
-        showConfirmButton: true, 
-      }).then(() => {
-        location.reload();
-      });
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        // Redirigir a la página de checkout
+        window.location.href = `/checkout/${data.ticketId}`;
+      } else {
+        throw new Error('Purchase not successful');
+      }
     })
     .catch(error => {
       console.error('Error:', error);

@@ -9,7 +9,10 @@ dotenv.config({
 })
 
 const configObject = {
-    mongo_url: process.env.MONGO_URL
+    mongo_url: process.env.MONGO_URL,
+    secretWord: process.env.SECRET_WORD,
+    port: process.env.PORT,
+    
 }
 
 module.exports = configObject;

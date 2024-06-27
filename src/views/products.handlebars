@@ -16,6 +16,13 @@
     <p>Category: {{category}} </p>
     <p>ID:{{id}} </p>
     <form action="/api/carts/{{../cartId}}/product/{{this.id}}" method="POST">
+    <div class="input-group mb-3">
+                        <button type="button" class="btn btn-outline-secondary"
+                            onclick="decreaseQuantity(this)">-</button>
+                        <input type="number" class="form-control" value="1" name="quantity" id="quantityInput" readonly>
+                        <button type="button" class="btn btn-outline-secondary"
+                            onclick="increaseQuantity(this)">+</button>
+                    </div>
         <button class="btnMios" type="submit">Agregar al Carrito</button>
     </form>
 </div>

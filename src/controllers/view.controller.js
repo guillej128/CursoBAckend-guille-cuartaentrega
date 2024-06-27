@@ -3,27 +3,49 @@ const ProductServices = require("../services/productServices.js");
 const productServices = new ProductServices();
 const CartServices = require("../services/cartServices.js");
 const cartServices = new CartServices();
+const UserModel = require("../dao/models/user.model.js");
+const UserDTO = require("../dto/user.dto.js");
 
 class ViewsController {
   async renderProducts(req, res) {
     try {
+
+
+      let criterioDeBusqueda = [];
+      const owner = req.user.role;
+      if (owner !=="admin") {
+        criterioDeBusqueda.push({
+          $match:{
+            owner:{$ne:owner}
+          }
+        })
+
+      }
+
+
       const { page = 1, limit = 3 } = req.query;
 
       const skip = (page - 1) * limit;
+      
+      criterioDeBusqueda.push({
+        $skip: skip,
+    }, {
+        $limit: limit,
+    });
 
-      const productos = await ProductModel.find().skip(skip).limit(limit);
+      const productos = await ProductModel.aggregate(criterioDeBusqueda);
 
-      const totalProducts = await ProductModel.countDocuments();
+      const totalProducts = await ProductModel.countDocuments(criterioDeBusqueda[0]?.['$match']);
 
       const totalPages = Math.ceil(totalProducts / limit);
 
       const hasPrevPage = page > 1;
       const hasNextPage = page < totalPages;
 
-      const nuevoArray = productos.map((producto) => {
+      /*const nuevoArray = productos.map((producto) => {
         const { _id, ...rest } = producto.toObject();
         return { id: _id, ...rest }; // Agregar el ID al objeto
-      });
+      });*/
 
       let cartId = null; // Inicializamos cartId como null
 
@@ -33,7 +55,7 @@ class ViewsController {
       }
 
       res.render("products", {
-        productos: nuevoArray,
+        productos: productos,
         hasPrevPage,
         hasNextPage,
         prevPage: page > 1 ? parseInt(page) - 1 : null,
@@ -124,8 +146,63 @@ class ViewsController {
 
   // Vista a Productos en tiempo real
   async renderRealTimeProducts(req, res) {
-    try {
-      res.render("realtimeproducts");
+     try {
+      let criterioDeBusqueda = [];
+      const owner = req.user.role;
+      const userEmail = req.user.email
+
+      if (owner !=="admin") {
+        criterioDeBusqueda.push({
+          $match:{
+            owner:userEmail
+          }
+        })
+      }
+      console.log(owner)
+
+
+      const { page = 1, limit = 3 } = req.query;
+
+      const skip = (page - 1) * limit;
+      
+      criterioDeBusqueda.push({
+        $skip: skip,
+    }, {
+        $limit: limit,
+    });
+
+      const productos = await ProductModel.aggregate(criterioDeBusqueda);
+
+      const totalProducts = await ProductModel.countDocuments(criterioDeBusqueda[0]?.['$match']);
+
+      const totalPages = Math.ceil(totalProducts / limit);
+
+      const hasPrevPage = page > 1;
+      const hasNextPage = page < totalPages;
+
+      /*const nuevoArray = productos.map((producto) => {
+        const { _id, ...rest } = producto.toObject();
+        return { id: _id, ...rest }; // Agregar el ID al objeto
+      });*/
+
+      let cartId = null; // Inicializamos cartId como null
+
+      // Verificamos si req.user existe y tiene la propiedad cart
+      if (req.user && req.user.cart) {
+        cartId = req.user.cart.toString();
+      }
+    
+    
+    res.render("realtimeproducts", {
+        productos: productos,
+        hasPrevPage,
+        hasNextPage,
+        prevPage: page > 1 ? parseInt(page) - 1 : null,
+        nextPage: page < totalPages ? parseInt(page) + 1 : null,
+        currentPage: parseInt(page),
+        totalPages,
+        
+      });;
     } catch (error) {
       console.log("error en la vista real time", error);
       res.status(500).json({ error: "Error interno del servidor" });
@@ -137,6 +214,61 @@ class ViewsController {
     res.render("chat");
   }
 
-  
+
+
+
+  //Reseteo de password:
+async renderPasswordConfirmation(req, res){
+  res.render("resetpasswordconfirmation")
+}
+
+async renderNewPassword(req, res){
+  res.render("newpassword")
+}
+
+async renderResetPassword(req, res){
+  res.render("resetpassword")
+}
+
+async renderConfirmacion(req, res) {
+  res.render("confirmacion-envio");
+}
+
+async renderPremium(req, res) {
+  if (!req.user || res.locals.isUserAdmin) {
+    return res.redirect('/')
+}
+  res.render("panel-premium");
+}
+
+async renderUsers(req, res) {
+  try {
+      const loggedInUserId = req.user._id; 
+      const role = req.user.role;
+
+      // Contar la cantidad total de usuarios excepto el logueado
+      const totalUsers = await UserModel.countDocuments({ _id: { $ne: loggedInUserId } });
+
+      // Paginación
+      let criteria = [
+          { $match: { _id: { $ne: loggedInUserId } } }, // Excluir el usuario logueado
+      ];
+
+      const users = await UserModel.aggregate(criteria);
+      const usersDto = users.map(user => new UserDTO(user.first_name, user.last_name, user.email, user.role, user.last_connection));
+
+          res.render("users", {
+          users: usersDto,
+          docs: usersDto,
+          role:  role,
+      });
+
+  } catch (error) {
+      console.error("Error al obtener los usuarios", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+  }
+}
+
+
 }
 module.exports = ViewsController;

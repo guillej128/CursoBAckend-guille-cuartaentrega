@@ -5,6 +5,10 @@ const cartServices = new CartServices();
 const ProductServices = require("../services/productServices.js");
 const productServices = new ProductServices();
 const { generateUniqueCode, calcularTotal } = require("../utils/cartutils.js");
+const EmailManager = require("../services/email.js");
+const emailManager = new EmailManager();
+const TicketServices = require("../services/ticket.services.js");
+const ticketServices = new TicketServices();
 
 
 class CartController {
@@ -81,25 +85,26 @@ class CartController {
     async vaciarCarrito(req, res) {
         try {
             const { cid } = req.params;
-            console.log("ID del carrito recibido:", cid); // Agrega un mensaje de depuración para mostrar el ID del carrito recibido
+            console.log("ID del carrito recibido:", cid); 
             const carrito = await cartServices.vaciarCarrito(cid);
-            console.log("Carrito vaciado exitosamente:", carrito); // Agrega un mensaje de depuración para mostrar el carrito vaciado
+            console.log("Carrito vaciado exitosamente:", carrito); 
             res.json(carrito);
         } catch (error) {
             console.error("Error al vaciar el carrito", error);
             res.status(500).json({ error: "Error en el servidor" });
         }
     }
+
     async finalizarCompra(req, res) {
         const cartId = req.params.cid;
         try {
             // Obtener el carrito y sus productos
             const cart = await cartServices.getCarritoById(cartId);
             const products = cart.products;
-
+    
             // Inicializar un arreglo para almacenar los productos no disponibles
             const productosNoDisponibles = [];
-
+    
             // Verificar el stock y actualizar los productos disponibles
             for (const item of products) {
                 const productId = item.product;
@@ -113,9 +118,9 @@ class CartController {
                     productosNoDisponibles.push(productId);
                 }
             }
-
+    
             const userWithCart = await UserModel.findOne({ cart: cartId });
-
+    
             // Crear un ticket con los datos de la compra
             const ticket = new TicketModel({
                 code: generateUniqueCode(),
@@ -124,19 +129,30 @@ class CartController {
                 purchaser: userWithCart._id
             });
             await ticket.save();
-
+    
             // Eliminar del carrito los productos que sí se compraron
-            cart.products = cart.products.filter(item => productosNoDisponibles.some(productId => productId.equals(item.product)));
-
+            cart.products = cart.products.filter(item => !productosNoDisponibles.some(productId => productId.equals(item.product)));
+    
+            await emailManager.sendEmailPurchase(userWithCart.email, userWithCart.first_name, ticket._id);
+    
             // Guardar el carrito actualizado en la base de datos
             await cart.save();
-
-            res.status(200).json({ productosNoDisponibles });
+    
+            // Redirigir a la vista de checkout
+            res.render("checkout", {
+                cliente: userWithCart.first_name,
+                email: userWithCart.email,
+                numTicket: ticket._id
+            });
+    
         } catch (error) {
             console.error('Error al procesar la compra:', error);
-            res.status(500).json({ error: 'Error interno del servidor' });
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Error interno del servidor' });
+            }
         }
     }
+  
 }
 
 module.exports = CartController

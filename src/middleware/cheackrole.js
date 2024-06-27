@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const confiObj = require("../config/config.js");
+const env = confiObj;
 
 const checkUserRole = (allowedRoles) => (req, res, next) => {
     const token = req.cookies.coderCookieToken;

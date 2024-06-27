@@ -1,9 +1,8 @@
 
-
 <div class="formRegistroYLogin">
 <h1>Login</h1>
 <div class="formLogin">
-<form action="/api/sessions/login" method="POST">
+<form action="/api/users/login" method="POST">
     <label for="email">Email:</label>
     <input type="email" id="email" name="email" required>
     <br>
@@ -15,8 +14,9 @@
 </form>
 </div>
 <div class="formLogin formRegistro">
-    <h2>Aun no te registrate, puedes hacerlo aqui!!</h2>
+    <h2>Si todavía no te registrate, puedes hacerlo aqui!!</h2>
 <button class="btn registrarse"><a href="/register">Registrarse</a></button>
-<button class="btn registrarse"><a href="/api/sessions/github">Registrarse con GitHub</a></button>
+<button class="btn registrarse"><a href="/api/users/github">Registrarse con GitHub</a></button>
 </div>
+<p>¿Olvidaste tu contraseña? <a href="/reset-password">Restablecer contraseña</a></p>
 </div>
